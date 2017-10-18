@@ -8,7 +8,7 @@ echo Rebuilding Previous
 mkdir -p ../../target/previous
 rm -rf ../../target/previous/*
 # Build the old program into target/previous
-clang++ ../../translated/previous/*.cpp -o ../../target/previous/Program -std=c++14 -Xclang -flto-visibility-public-std
+clang++ ../../translated/previous/*.cpp -o ../../target/previous/Program -std=c++14
 echo ''
 echo '*************************'
 echo Compiling Current
@@ -23,5 +23,5 @@ source_files=`ls -d ../../src/*.ad ../../src/**/*.ad`
 # Build the new program into target/current for testing
 mkdir -p ../../target/current
 rm -rf ../../target/current/*
-clang++ ../../translated/current/*.cpp -o ../../target/current/Program -std=c++14 -Xclang -flto-visibility-public-std
+clang++ ../../translated/current/*.cpp -o ../../target/current/Program -std=c++14
 # We're done building! Now off to test that the program works!
