@@ -15,3 +15,6 @@ ipch/
 
 # VS Code Files
 .vscode/
+
+# OSX Files
+.DS_Store
