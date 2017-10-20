@@ -151,7 +151,7 @@ namespace System_
 
 	namespace IO_
 	{
-		FileReader_::FileReader_(const string& fileName)
+		File_Reader_::File_Reader_(const string& fileName)
 		{
 			std::FILE* foo;
 			auto fname = fileName.cstr();
@@ -159,7 +159,7 @@ namespace System_
 			delete[] fname;
 		}
 
-		string FileReader_::ReadToEndSync_()
+		string File_Reader_::ReadToEndSync_()
 		{
 			std::fseek(file, 0, SEEK_END);
 			auto length = std::ftell(file);
@@ -169,24 +169,24 @@ namespace System_
 			return string(length, buffer);
 		}
 
-		void FileReader_::Close_()
+		void File_Reader_::Close_()
 		{
 			std::fclose(file);
 		}
 
-		FileWriter_::FileWriter_(const string& fileName)
+		File_Writer_::File_Writer_(const string& fileName)
 		{
 			auto fname = fileName.cstr();
 			file = std::fopen(fname, "wb"); // TODO check error
 			delete[] fname;
 		}
 
-		void FileWriter_::Write_(const string& value)
+		void File_Writer_::Write_(const string& value)
 		{
 			std::fwrite(value.Buffer, sizeof(char), value.Length_, file);
 		}
 
-		void FileWriter_::Close_()
+		void File_Writer_::Close_()
 		{
 			std::fclose(file);
 		}
@@ -194,32 +194,32 @@ namespace System_
 
 	namespace Text_
 	{
-		StringBuilder_::StringBuilder_(string const & value)
+		String_Builder_::String_Builder_(string const & value)
 			: buffer(value)
 		{
 		}
 
-		StringBuilder_::StringBuilder_()
+		String_Builder_::String_Builder_()
 			: buffer("")
 		{
 		}
 
-		void StringBuilder_::Append_(string const & value)
+		void String_Builder_::Append_(string const & value)
 		{
 			buffer = buffer + value;
 		}
 
-		void StringBuilder_::Append_(StringBuilder_ const * value)
+		void String_Builder_::Append_(String_Builder_ const * value)
 		{
 			buffer = buffer + value->buffer;
 		}
 
-		void StringBuilder_::AppendLine_(string const & value)
+		void String_Builder_::AppendLine_(string const & value)
 		{
 			buffer = buffer + value + string("\n");
 		}
 
-		void StringBuilder_::AppendLine_()
+		void String_Builder_::AppendLine_()
 		{
 			buffer = buffer + string("\n");
 		}

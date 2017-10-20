@@ -154,24 +154,24 @@ namespace System_
 
 	namespace IO_
 	{
-		class FileReader_
+		class File_Reader_
 		{
 		private:
 			std::FILE* file;
 
 		public:
-			FileReader_(const string& fileName);
+			File_Reader_(const string& fileName);
 			string ReadToEndSync_();
 			void Close_();
 		};
 
-		class FileWriter_
+		class File_Writer_
 		{
 		private:
 			std::FILE* file;
 
 		public:
-			FileWriter_(const string& fileName);
+			File_Writer_(const string& fileName);
 			void Write_(const string& value);
 			void Close_();
 		};
@@ -179,14 +179,15 @@ namespace System_
 
 	namespace Text_
 	{
-		class StringBuilder_
+		class String_Builder_
 		{
 		private:
 			string buffer;
 		public:
-			StringBuilder_();
-			StringBuilder_(string const & value);
+			String_Builder_();
+			String_Builder_(string const & value);
 			void Append_(string const & value);
+			void Append_(String_Builder_ const * value);
 			void AppendLine_(string const& value);
 			void AppendLine_();
 			string ToString_() const { return buffer; }
