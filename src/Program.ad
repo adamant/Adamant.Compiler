@@ -565,6 +565,7 @@ public ParseArgumentsDeclaration(isMainFunction: bool, isMethod: bool) -> string
 	Expect(")");
 	let result: string = arguments.ToString();
 	// TODO implement shortening of String_Builder
+	// Max says: String_Builder has shortening (via `Delete`), but `result` is a string, not a String_Builder...
 	return result.Substring(0, result.Length - 2); // remove the trailing comma and space
 }
 

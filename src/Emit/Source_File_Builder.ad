@@ -19,7 +19,7 @@ public class Source_File_Builder
 
     public BeginLine(mut self, value: string) -> void
     {
-        code.Append(indent.ToString()); // TODO remove ToString() when RuntimeLibrary supports Append(String_Builder)
+        code.Append(indent);
         code.Append(value);
         firstElement = afterBlock = false;
     }
@@ -39,7 +39,7 @@ public class Source_File_Builder
 
     public WriteLine(mut self, value: string) -> void
     {
-        code.Append(indent.ToString()); // TODO remove ToString() when RuntimeLibrary supports Append(String_Builder)
+        code.Append(indent);
         code.Append(value);
         code.AppendLine();
         firstElement = afterBlock = false;
@@ -84,7 +84,7 @@ public class Source_File_Builder
     // @ensures IndentDepth == old(IndentDepth)-1
     public EndBlock(mut self) -> void
     {
-        indent = new System.Text.String_Builder(indent.ToString().Substring(1)); // TODO support shortening String_Builder
+        indent.Delete(0, 1);
         WriteLine("}");
         afterBlock = true;
     }
@@ -93,7 +93,7 @@ public class Source_File_Builder
     // @ensures IndentDepth == old(IndentDepth)-1
     public EndBlockWithSemicolon(mut self) -> void
     {
-        indent = new System.Text.String_Builder(indent.ToString().Substring(1)); // TODO support shortening String_Builder
+        indent.Delete(0, 1);
         WriteLine("};");
     }
 
