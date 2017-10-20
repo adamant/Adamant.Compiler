@@ -1,14 +1,14 @@
 #include "RuntimeLibrary.h"
 
 // Type Declarations
-class Lexer_;
-class Parser_;
-class Source_Text_;
+class Source_File_Builder_;
 class Syntax_Node_;
 class Syntax_Token_;
 class Token_Stream_;
+class Lexer_;
+class Parser_;
+class Source_Text_;
 class Token_Type_;
-class Source_File_Builder_;
 
 // Function Declarations
 auto IsIdentifierChar_(char const c_) -> bool;
@@ -45,57 +45,12 @@ auto Main_(::System_::Console_::Console_ *const console_, ::System_::Console_::A
 auto ReadSource_(string const path_) -> ::Source_Text_ const *;
 
 // Class Declarations
-class Lexer_
-{
-public:
-	auto Analyze_(::Source_Text_ const *const source_) const -> ::Token_Stream_ *;
-};
-class Parser_
-{
-public:
-	Parser_();
-	auto Parse_(::Token_Stream_ const *const tokenStream_) const -> ::Syntax_Node_ const *;
-};
-class Source_Text_
-{
-public:
-	string Package_;
-	string Name_;
-	string Text_;
-	Source_Text_(string const package_, string const name_, string const text_);
-};
-class Syntax_Node_
-{
-public:
-};
-class Syntax_Token_
-{
-public:
-	::Token_Type_ const * TokenType_;
-	::Source_Text_ const * Source_;
-	unsigned int Start_;
-	unsigned int Length_;
-	Syntax_Token_(::Token_Type_ const *const tokenType_, ::Source_Text_ const *const source_, unsigned int const start_, unsigned int const length_);
-};
-class Token_Stream_
-{
-public:
-	::Source_Text_ const * Source_;
-	unsigned int nextToken_;
-	Token_Stream_(::Source_Text_ const *const source_);
-	auto GetNextToken_() -> string;
-	static auto NewToken_(::Token_Type_ const *const type_, unsigned int const end_) -> ::Syntax_Token_ const *;
-	static auto NewToken_(::Token_Type_ const *const type_) -> ::Syntax_Token_ const *;
-};
-class Token_Type_
-{
-public:
-};
+
 class Source_File_Builder_
 {
 public:
-	::System_::Text_::StringBuilder_ * code_;
-	::System_::Text_::StringBuilder_ * indent_;
+	::System_::Text_::String_Builder_ * code_;
+	::System_::Text_::String_Builder_ * indent_;
 	bool firstElement_;
 	bool afterBlock_;
 	Source_File_Builder_();
@@ -113,41 +68,163 @@ public:
 	auto ToString_() const -> string;
 };
 
+class Syntax_Node_
+{
+public:
+};
+
+class Syntax_Token_
+{
+public:
+	::Token_Type_ const * TokenType_;
+	::Source_Text_ const * Source_;
+	unsigned int Start_;
+	unsigned int Length_;
+	Syntax_Token_(::Token_Type_ const *const tokenType_, ::Source_Text_ const *const source_, unsigned int const start_, unsigned int const length_);
+};
+
+class Token_Stream_
+{
+public:
+	::Source_Text_ const * Source_;
+	unsigned int nextToken_;
+	Token_Stream_(::Source_Text_ const *const source_);
+	auto GetNextToken_() -> string;
+	static auto NewToken_(::Token_Type_ const *const type_, unsigned int const end_) -> ::Syntax_Token_ const *;
+	static auto NewToken_(::Token_Type_ const *const type_) -> ::Syntax_Token_ const *;
+};
+
+class Lexer_
+{
+public:
+	auto Analyze_(::Source_Text_ const *const source_) const -> ::Token_Stream_ *;
+};
+
+class Parser_
+{
+public:
+	Parser_();
+	auto Parse_(::Token_Stream_ const *const tokenStream_) const -> ::Syntax_Node_ const *;
+};
+
+class Source_Text_
+{
+public:
+	string Package_;
+	string Name_;
+	string Text_;
+	Source_Text_(string const package_, string const name_, string const text_);
+};
+
+class Token_Type_
+{
+public:
+};
+
 // Definitions
-auto ::Lexer_::Analyze_(::Source_Text_ const *const source_) const -> ::Token_Stream_ *
+
+::Source_File_Builder_::Source_File_Builder_()
 {
-	return new ::Token_Stream_(source_);
+	code_ = new ::System_::Text_::String_Builder_();
+	indent_ = new ::System_::Text_::String_Builder_();
+	firstElement_ = true;
+	afterBlock_ = true;
 }
 
-::Parser_::Parser_()
+auto ::Source_File_Builder_::Error_(string const message_) -> void
 {
+	code_->Append_(string("<$ ") + message_ + string(" $>"));
 }
 
-auto ::Parser_::Parse_(::Token_Stream_ const *const tokenStream_) const -> ::Syntax_Node_ const *
+auto ::Source_File_Builder_::BeginLine_(string const value_) -> void
 {
-	return ::None;
+	code_->Append_(indent_->ToString_());
+	code_->Append_(value_);
+	firstElement_ = afterBlock_ = false;
 }
 
+auto ::Source_File_Builder_::Write_(string const value_) -> void
+{
+	code_->Append_(value_);
+	firstElement_ = afterBlock_ = false;
+}
+
+auto ::Source_File_Builder_::EndLine_(string const value_) -> void
+{
+	code_->Append_(value_);
+	code_->AppendLine_();
+	firstElement_ = afterBlock_ = false;
+}
+
+auto ::Source_File_Builder_::WriteLine_(string const value_) -> void
+{
+	code_->Append_(indent_->ToString_());
+	code_->Append_(value_);
+	code_->AppendLine_();
+	firstElement_ = afterBlock_ = false;
+}
+
+auto ::Source_File_Builder_::BlankLine_() -> void
+{
+	code_->AppendLine_();
+	firstElement_ = true;
+	afterBlock_ = false;
+}
+
+auto ::Source_File_Builder_::ElementSeparatorLine_() -> void
+{
+	if (!firstElement_)
+	{
+		code_->AppendLine_();
+		firstElement_ = true;
+		afterBlock_ = false;
+	}
+}
+
+auto ::Source_File_Builder_::StatementSeparatorLine_() -> void
+{
+	if (afterBlock_)
+	{
+		code_->AppendLine_();
+		firstElement_ = true;
+		afterBlock_ = false;
+	}
+}
+
+auto ::Source_File_Builder_::BeginBlock_() -> void
+{
+	WriteLine_(string("{"));
+	indent_->Append_(string("\t"));
+	firstElement_ = afterBlock_ = false;
+}
+
+auto ::Source_File_Builder_::EndBlock_() -> void
+{
+	indent_ = new ::System_::Text_::String_Builder_(indent_->ToString_()->Substring_(1));
+	WriteLine_(string("}"));
+	afterBlock_ = true;
+}
+
+auto ::Source_File_Builder_::EndBlockWithSemicolon_() -> void
+{
+	indent_ = new ::System_::Text_::String_Builder_(indent_->ToString_()->Substring_(1));
+	WriteLine_(string("};"));
+}
+
+auto ::Source_File_Builder_::ToString_() const -> string
+{
+	return code_->ToString_();
+}
 ::Token_Stream_ * tokenStream_ = ::None;
-
 string Token_ = string("");
-
 ::Source_File_Builder_ *const TypeDeclarations_ = new ::Source_File_Builder_();
-
 ::Source_File_Builder_ *const FunctionDeclarations_ = new ::Source_File_Builder_();
-
 ::Source_File_Builder_ *const ClassDeclarations_ = new ::Source_File_Builder_();
-
 ::Source_File_Builder_ *const Definitions_ = new ::Source_File_Builder_();
-
 int IndentDepth_ = 0;
-
 bool AfterDeclaration_ = false;
-
 string MainFunctionReturnType_ = string("");
-
 bool MainFunctionAcceptsConsole_ = false;
-
 bool MainFunctionAcceptsArgs_ = false;
 
 auto IsIdentifierChar_(char const c_) -> bool
@@ -336,7 +413,7 @@ auto ConvertType_(bool const mutableBinding_, bool const mutableValue_, string t
 
 auto ParseType_() -> string
 {
-	::System_::Text_::StringBuilder_ *const type_ = new ::System_::Text_::StringBuilder_(ExpectIdentifier_());
+	::System_::Text_::String_Builder_ *const type_ = new ::System_::Text_::String_Builder_(ExpectIdentifier_());
 	while (Accept_(string(".")))
 	{
 		type_->Append_(string("."));
@@ -745,7 +822,7 @@ auto ParseArgumentsDeclaration_(bool const isMainFunction_, bool const isMethod_
 		return string("");
 	}
 
-	::System_::Text_::StringBuilder_ *const arguments_ = new ::System_::Text_::StringBuilder_();
+	::System_::Text_::String_Builder_ *const arguments_ = new ::System_::Text_::String_Builder_();
 	do
 	{
 		bool const mutableBinding_ = Accept_(string("var"));
@@ -1015,7 +1092,7 @@ auto EmitEntryPointAdapter_(::System_::Collections_::List_<::Source_Text_ const 
 		Definitions_->EndLine_(string(""));
 	}
 
-	::System_::Text_::StringBuilder_ *const args_ = new ::System_::Text_::StringBuilder_();
+	::System_::Text_::String_Builder_ *const args_ = new ::System_::Text_::String_Builder_();
 	if (MainFunctionAcceptsConsole_)
 	{
 		args_->Append_(string("new ::System_::Console_::Console_()"));
@@ -1123,7 +1200,7 @@ auto Main_(::System_::Console_::Console_ *const console_, ::System_::Console_::A
 	string const translated_ = Compile_(sources_, resources_);
 	console_->Write_(string("Output: "));
 	console_->WriteLine_(outputFilePath_);
-	::System_::IO_::FileWriter_ *const outputFile_ = new ::System_::IO_::FileWriter_(outputFilePath_);
+	::System_::IO_::File_Writer_ *const outputFile_ = new ::System_::IO_::File_Writer_(outputFilePath_);
 	outputFile_->Write_(translated_);
 	outputFile_->Close_();
 	console_->Write_(string("Outputting RuntimeLibrary to: "));
@@ -1141,17 +1218,17 @@ auto Main_(::System_::Console_::Console_ *const console_, ::System_::Console_::A
 	}
 
 	console_->WriteLine_(outputDirPath_);
-	::System_::IO_::FileWriter_ * resourceFile_ = new ::System_::IO_::FileWriter_(outputDirPath_ + string("RuntimeLibrary.h"));
+	::System_::IO_::File_Writer_ * resourceFile_ = new ::System_::IO_::File_Writer_(outputDirPath_ + string("RuntimeLibrary.h"));
 	resourceFile_->Write_(resource_manager_->GetString_(string("RuntimeLibrary.h")));
 	resourceFile_->Close_();
-	resourceFile_ = new ::System_::IO_::FileWriter_(outputDirPath_ + string("RuntimeLibrary.cpp"));
+	resourceFile_ = new ::System_::IO_::File_Writer_(outputDirPath_ + string("RuntimeLibrary.cpp"));
 	resourceFile_->Write_(resource_manager_->GetString_(string("RuntimeLibrary.cpp")));
 	resourceFile_->Close_();
 }
 
 auto ReadSource_(string const path_) -> ::Source_Text_ const *
 {
-	::System_::IO_::FileReader_ *const file_ = new ::System_::IO_::FileReader_(path_);
+	::System_::IO_::File_Reader_ *const file_ = new ::System_::IO_::File_Reader_(path_);
 	string const contents_ = file_->ReadToEndSync_();
 	file_->Close_();
 	string name_ = path_;
@@ -1168,13 +1245,6 @@ auto ReadSource_(string const path_) -> ::Source_Text_ const *
 	}
 
 	return new ::Source_Text_(string("<default>"), name_, contents_);
-}
-
-::Source_Text_::Source_Text_(string const package_, string const name_, string const text_)
-{
-	Package_ = package_;
-	Name_ = name_;
-	Text_ = text_;
 }
 
 ::Syntax_Token_::Syntax_Token_(::Token_Type_ const *const tokenType_, ::Source_Text_ const *const source_, unsigned int const start_, unsigned int const length_)
@@ -1372,104 +1442,32 @@ auto ::Token_Stream_::NewToken_(::Token_Type_ const *const type_) -> ::Syntax_To
 	return ::None;
 }
 
-::Source_File_Builder_::Source_File_Builder_()
+auto ::Lexer_::Analyze_(::Source_Text_ const *const source_) const -> ::Token_Stream_ *
 {
-	code_ = new ::System_::Text_::StringBuilder_();
-	indent_ = new ::System_::Text_::StringBuilder_();
-	firstElement_ = true;
-	afterBlock_ = true;
+	return new ::Token_Stream_(source_);
 }
 
-auto ::Source_File_Builder_::Error_(string const message_) -> void
+::Parser_::Parser_()
 {
-	code_->Append_(string("<$ ") + message_ + string(" $>"));
 }
 
-auto ::Source_File_Builder_::BeginLine_(string const value_) -> void
+auto ::Parser_::Parse_(::Token_Stream_ const *const tokenStream_) const -> ::Syntax_Node_ const *
 {
-	code_->Append_(indent_->ToString_());
-	code_->Append_(value_);
-	firstElement_ = afterBlock_ = false;
+	return ::None;
 }
 
-auto ::Source_File_Builder_::Write_(string const value_) -> void
+::Source_Text_::Source_Text_(string const package_, string const name_, string const text_)
 {
-	code_->Append_(value_);
-	firstElement_ = afterBlock_ = false;
-}
-
-auto ::Source_File_Builder_::EndLine_(string const value_) -> void
-{
-	code_->Append_(value_);
-	code_->AppendLine_();
-	firstElement_ = afterBlock_ = false;
-}
-
-auto ::Source_File_Builder_::WriteLine_(string const value_) -> void
-{
-	code_->Append_(indent_->ToString_());
-	code_->Append_(value_);
-	code_->AppendLine_();
-	firstElement_ = afterBlock_ = false;
-}
-
-auto ::Source_File_Builder_::BlankLine_() -> void
-{
-	code_->AppendLine_();
-	firstElement_ = true;
-	afterBlock_ = false;
-}
-
-auto ::Source_File_Builder_::ElementSeparatorLine_() -> void
-{
-	if (!firstElement_)
-	{
-		code_->AppendLine_();
-		firstElement_ = true;
-		afterBlock_ = false;
-	}
-}
-
-auto ::Source_File_Builder_::StatementSeparatorLine_() -> void
-{
-	if (afterBlock_)
-	{
-		code_->AppendLine_();
-		firstElement_ = true;
-		afterBlock_ = false;
-	}
-}
-
-auto ::Source_File_Builder_::BeginBlock_() -> void
-{
-	WriteLine_(string("{"));
-	indent_->Append_(string("\t"));
-	firstElement_ = afterBlock_ = false;
-}
-
-auto ::Source_File_Builder_::EndBlock_() -> void
-{
-	indent_ = new ::System_::Text_::StringBuilder_(indent_->ToString_()->Substring_(1));
-	WriteLine_(string("}"));
-	afterBlock_ = true;
-}
-
-auto ::Source_File_Builder_::EndBlockWithSemicolon_() -> void
-{
-	indent_ = new ::System_::Text_::StringBuilder_(indent_->ToString_()->Substring_(1));
-	WriteLine_(string("};"));
-}
-
-auto ::Source_File_Builder_::ToString_() const -> string
-{
-	return code_->ToString_();
+	Package_ = package_;
+	Name_ = name_;
+	Text_ = text_;
 }
 
 // Entry Point Adapter
 int main(int argc, char const *const * argv)
 {
-	resource_manager_->AddResource(::string("RuntimeLibrary.cpp"), ::string("#include \"RuntimeLibrary.h\"\n#include <map>\n\nstring::string()\n	: Length_(0), Buffer(0)\n{\n}\n\nstring::string(char c, int repeat)\n	: Length_(repeat)\n{\n	char* buffer = new char[repeat];\n	for (int i = 0; i < repeat; i++)\n		buffer[i] = c;\n\n	Buffer = buffer;\n}\n\nstring::string(const char* s)\n	: Length_(std::strlen(s)), Buffer(s)\n{\n}\n\nstring::string(int length, const char* s)\n	: Length_(length), Buffer(s)\n{\n}\n\nchar const * string::cstr() const\n{\n	auto buffer = new char[Length_ + 1];\n	std::memcpy(buffer, Buffer, Length_);\n	buffer[Length_] = 0;\n	return buffer;\n}\n\nstring string::Substring_(int start, int length) const\n{\n	return string(length, Buffer + start);\n}\n\nstring string::Replace_(string oldValue, string newValue) const\n{\n	string buffer = \"\";\n	int limit = Length_ - oldValue.Length_ + 1;\n	int lastIndex = 0;\n	for(int i=0; i < limit; i++)\n		if (Substring_(i, oldValue.Length_) == oldValue)\n		{\n			buffer = buffer + Substring_(lastIndex, i-lastIndex) + newValue;\n			i += oldValue.Length_; // skip over the value we just matched\n			lastIndex = i;\n			i--; // we need i-- to offset the i++ that is about to happen\n		}\n\n	buffer = buffer + Substring_(lastIndex, Length_ - lastIndex);\n	return buffer;\n}\n\nint string::LastIndexOf_(char c) const\n{\n	for(int i=Length_-1; i>=0; i--)\n		if(Buffer[i]==c)\n			return i;\n\n	return -1;\n}\n\nchar string::operator[] (const int index) const\n{\n	return Buffer[index];\n}\n\nstring string::operator+(const string& value) const\n{\n	int newLength = Length_ + value.Length_;\n	char* chars = new char[newLength];\n	size_t offset = sizeof(char)*Length_;\n	std::memcpy(chars, Buffer, offset);\n	std::memcpy(chars + offset, value.Buffer, value.Length_);\n	return string(newLength, chars);\n}\n\nstring string::operator+(const char& value) const\n{\n	int newLength = Length_ + 1;\n	char* chars = new char[newLength];\n	size_t offset = sizeof(char)*Length_;\n	std::memcpy(chars, Buffer, offset);\n	chars[Length_] = value;\n	return string(newLength, chars);\n}\n\nbool string::operator==(const string &other) const\n{\n	if (Length_ != other.Length_)\n		return false;\n\n	for (int i = 0; i < Length_; i++)\n		if (Buffer[i] != other.Buffer[i])\n			return false;\n\n	return true;\n}\n\nbool operator < (string const& lhs, string const& rhs)\n{\n    return std::strcmp(lhs.cstr(), rhs.cstr()) < 0;\n}\n\nstd::map<string, string> resourceValues;\n\nstring const & ResourceManager::GetString_(string resourceName)\n{\n	return resourceValues.at(resourceName);\n}\nvoid ResourceManager::AddResource(string name, string value)\n{\n	resourceValues.insert(std::make_pair(name, value));\n}\n\nResourceManager *const resource_manager_ = new ResourceManager();\n\nnamespace System_\n{\n	namespace Console_\n	{\n		void Console_::Write_(string value)\n		{\n			std::printf(\"%.*s\", value.Length_, value.Buffer);\n		}\n\n		void Console_::WriteLine_(string value)\n		{\n			std::printf(\"%.*s\\n\", value.Length_, value.Buffer);\n		}\n\n		void Console_::WriteLine_()\n		{\n			std::printf(\"\\n\");\n		}\n\n		Arguments_::Arguments_(int argc, char const *const * argv)\n			: Count_(argc-1)\n		{\n			args = new string[Count_];\n			for (int i = 0; i < Count_; i++)\n				args[i] = string(argv[i+1]);\n		}\n	}\n\n	namespace IO_\n	{\n		FileReader_::FileReader_(const string& fileName)\n		{\n			std::FILE* foo;\n			auto fname = fileName.cstr();\n			file = std::fopen(fname, \"rb\");\n			delete[] fname;\n		}\n\n		string FileReader_::ReadToEndSync_()\n		{\n			std::fseek(file, 0, SEEK_END);\n			auto length = std::ftell(file);\n			std::fseek(file, 0, SEEK_SET);\n			auto buffer = new char[length];\n			length = std::fread(buffer, sizeof(char), length, file);\n			return string(length, buffer);\n		}\n\n		void FileReader_::Close_()\n		{\n			std::fclose(file);\n		}\n\n		FileWriter_::FileWriter_(const string& fileName)\n		{\n			auto fname = fileName.cstr();\n			file = std::fopen(fname, \"wb\"); // TODO check error\n			delete[] fname;\n		}\n\n		void FileWriter_::Write_(const string& value)\n		{\n			std::fwrite(value.Buffer, sizeof(char), value.Length_, file);\n		}\n\n		void FileWriter_::Close_()\n		{\n			std::fclose(file);\n		}\n	}\n\n	namespace Text_\n	{\n		StringBuilder_::StringBuilder_(string const & value)\n			: buffer(value)\n		{\n		}\n\n		StringBuilder_::StringBuilder_()\n			: buffer(\"\")\n		{\n		}\n\n		void StringBuilder_::Append_(string const & value)\n		{\n			buffer = buffer + value;\n		}\n\n		void StringBuilder_::Append_(StringBuilder_ const * value)\n		{\n			buffer = buffer + value->buffer;\n		}\n\n		void StringBuilder_::AppendLine_(string const & value)\n		{\n			buffer = buffer + value + string(\"\\n\");\n		}\n\n		void StringBuilder_::AppendLine_()\n		{\n			buffer = buffer + string(\"\\n\");\n		}\n	}\n}\n"));
-	resource_manager_->AddResource(::string("RuntimeLibrary.h"), ::string("// On windows this disables warnings about using fopen_s instead of fopen\r\n// It must be defined before including the headers.  The includes have been moved\r\n// here to avoid leaking this into the program being compiled.  This required the\r\n// use of void* instead of FILE* in some places.\r\n#define _CRT_SECURE_NO_WARNINGS\r\n#include <cstring>\r\n#include <cstdio>\r\n\r\nstruct string\r\n{\r\npublic:\r\n	int Length_;\r\n	char const * Buffer;\r\n\r\n	string();\r\n	string(char c, int repeat);\r\n	string(char const * s);\r\n	string(int length, char const * s);\r\n	char const * cstr() const;\r\n	string Substring_(int start, int length) const;\r\n	string Substring_(int start) const { return Substring_(start, Length_-start); }\r\n	string Replace_(string oldValue, string newValue) const;\r\n	int LastIndexOf_(char c) const;\r\n	char operator[] (int const index) const;\r\n	string operator+(string const & value) const;\r\n	string operator+(char const & value) const;\r\n	string const * operator->() const { return this; }\r\n	string const & operator* () const { return *this; }\r\n	bool operator==(string const & other) const;\r\n	bool operator!=(string const & other) const { return !(*this == other); }\r\n	friend bool operator<(string const & lhs, string const & rhs);\r\n\r\n	typedef char const * const_iterator;\r\n	const_iterator begin() const { return &Buffer[0]; }\r\n	const_iterator end() const { return &Buffer[Length_]; }\r\n};\r\n\r\nclass ResourceManager\r\n{\r\npublic:\r\n	string const & GetString_(string resourceName);\r\n	void AddResource(string name, string value);\r\n};\r\n\r\nextern ResourceManager *const resource_manager_;\r\n\r\nclass NoneType\r\n{\r\npublic:\r\n	template<class T>\r\n	operator T*() const { return static_cast<T*>(0); }\r\n};\r\nstatic const NoneType None = NoneType();\r\n\r\ntemplate<typename T>\r\nstruct Maybe\r\n{\r\nprivate:\r\n	T data;\r\n	bool hasValue;\r\n\r\npublic:\r\n	Maybe(T const & value) : data(value), hasValue(true) {}\r\n	Maybe(::NoneType const & none) : hasValue(false) {}\r\n	T& operator->() { return data; }\r\n	T const & operator->() const\r\n	{\r\n		if(!hasValue) throw \"Access to null Maybe value\";\r\n		return data;\r\n	}\r\n	T  & operator* ()\r\n	{\r\n		if(!hasValue) throw \"Access to null Maybe value\";\r\n		return data;\r\n	}\r\n	T const & operator* () const\r\n	{\r\n		if(!hasValue) throw \"Access to null Maybe value\";\r\n		return data;\r\n	}\r\n	bool operator==(T const & other) const\r\n	{\r\n		return hasValue && data == other;\r\n	}\r\n	bool operator!=(T const & other) const\r\n	{\r\n		return hasValue && data != other;\r\n	}\r\n};\r\n\r\nnamespace System_\r\n{\r\n	namespace Collections_\r\n	{\r\n		template<typename T>\r\n		class List_\r\n		{\r\n		private:\r\n			T* values;\r\n			int length;\r\n			int capacity;\r\n\r\n		public:\r\n			typedef T const * const_iterator;\r\n\r\n			List_() : values(0), length(0), capacity(0) { }\r\n			void Add_(T value);\r\n			int Length_() const { return length; }\r\n			const_iterator begin() const { return values; }\r\n			const_iterator end() const { return &values[length]; }\r\n			T const & Get_(int const index) const { return values[index]; }\r\n		};\r\n\r\n		template<typename T>\r\n		void List_<T>::Add_(T value)\r\n		{\r\n			if(length >= capacity)\r\n			{\r\n				int newCapacity = capacity == 0 ? 16 : capacity * 2;\r\n				T* newValues = new T[newCapacity];\r\n				std::memcpy(newValues, values, length * sizeof(T));\r\n				values = newValues;\r\n				capacity = newCapacity;\r\n			}\r\n			values[length] = value;\r\n			length++;\r\n		}\r\n	}\r\n\r\n	namespace Console_\r\n	{\r\n		class Console_\r\n		{\r\n		public:\r\n			void Write_(string value);\r\n			void WriteLine_(string value);\r\n			void WriteLine_();\r\n		};\r\n\r\n		class Arguments_\r\n		{\r\n		private:\r\n			string* args;\r\n		public:\r\n			typedef string const * const_iterator;\r\n			const int Count_;\r\n\r\n			Arguments_(int argc, char const *const * argv);\r\n			const_iterator begin() const { return &args[0]; }\r\n			const_iterator end() const { return &args[Count_]; }\r\n			string const & Get_(int const index) const { return args[index]; }\r\n		};\r\n	}\r\n\r\n	namespace IO_\r\n	{\r\n		class FileReader_\r\n		{\r\n		private:\r\n			std::FILE* file;\r\n\r\n		public:\r\n			FileReader_(const string& fileName);\r\n			string ReadToEndSync_();\r\n			void Close_();\r\n		};\r\n\r\n		class FileWriter_\r\n		{\r\n		private:\r\n			std::FILE* file;\r\n\r\n		public:\r\n			FileWriter_(const string& fileName);\r\n			void Write_(const string& value);\r\n			void Close_();\r\n		};\r\n	}\r\n\r\n	namespace Text_\r\n	{\r\n		class StringBuilder_\r\n		{\r\n		private:\r\n			string buffer;\r\n		public:\r\n			StringBuilder_();\r\n			StringBuilder_(string const & value);\r\n			void Append_(string const & value);\r\n			void Append_(StringBuilder_ const * value);\r\n			void AppendLine_(string const& value);\r\n			void AppendLine_();\r\n			string ToString_() const { return buffer; }\r\n		};\r\n	}\r\n}\r\n"));
+	resource_manager_->AddResource(::string("RuntimeLibrary.cpp"), ::string("#include \"RuntimeLibrary.h\"\n#include <map>\n\nstring::string()\n	: Length_(0), Buffer(0)\n{\n}\n\nstring::string(char c, int repeat)\n	: Length_(repeat)\n{\n	char* buffer = new char[repeat];\n	for (int i = 0; i < repeat; i++)\n		buffer[i] = c;\n\n	Buffer = buffer;\n}\n\nstring::string(const char* s)\n	: Length_(std::strlen(s)), Buffer(s)\n{\n}\n\nstring::string(int length, const char* s)\n	: Length_(length), Buffer(s)\n{\n}\n\nchar const * string::cstr() const\n{\n	auto buffer = new char[Length_ + 1];\n	std::memcpy(buffer, Buffer, Length_);\n	buffer[Length_] = 0;\n	return buffer;\n}\n\nstring string::Substring_(int start, int length) const\n{\n	return string(length, Buffer + start);\n}\n\nstring string::Replace_(string oldValue, string newValue) const\n{\n	string buffer = \"\";\n	int limit = Length_ - oldValue.Length_ + 1;\n	int lastIndex = 0;\n	for(int i=0; i < limit; i++)\n		if (Substring_(i, oldValue.Length_) == oldValue)\n		{\n			buffer = buffer + Substring_(lastIndex, i-lastIndex) + newValue;\n			i += oldValue.Length_; // skip over the value we just matched\n			lastIndex = i;\n			i--; // we need i-- to offset the i++ that is about to happen\n		}\n\n	buffer = buffer + Substring_(lastIndex, Length_ - lastIndex);\n	return buffer;\n}\n\nint string::LastIndexOf_(char c) const\n{\n	for(int i=Length_-1; i>=0; i--)\n		if(Buffer[i]==c)\n			return i;\n\n	return -1;\n}\n\nchar string::operator[] (const int index) const\n{\n	return Buffer[index];\n}\n\nstring string::operator+(const string& value) const\n{\n	int newLength = Length_ + value.Length_;\n	char* chars = new char[newLength];\n	size_t offset = sizeof(char)*Length_;\n	std::memcpy(chars, Buffer, offset);\n	std::memcpy(chars + offset, value.Buffer, value.Length_);\n	return string(newLength, chars);\n}\n\nstring string::operator+(const char& value) const\n{\n	int newLength = Length_ + 1;\n	char* chars = new char[newLength];\n	size_t offset = sizeof(char)*Length_;\n	std::memcpy(chars, Buffer, offset);\n	chars[Length_] = value;\n	return string(newLength, chars);\n}\n\nbool string::operator==(const string &other) const\n{\n	if (Length_ != other.Length_)\n		return false;\n\n	for (int i = 0; i < Length_; i++)\n		if (Buffer[i] != other.Buffer[i])\n			return false;\n\n	return true;\n}\n\nbool operator < (string const& lhs, string const& rhs)\n{\n    return std::strcmp(lhs.cstr(), rhs.cstr()) < 0;\n}\n\nstd::map<string, string> resourceValues;\n\nstring const & ResourceManager::GetString_(string resourceName)\n{\n	return resourceValues.at(resourceName);\n}\nvoid ResourceManager::AddResource(string name, string value)\n{\n	resourceValues.insert(std::make_pair(name, value));\n}\n\nResourceManager *const resource_manager_ = new ResourceManager();\n\nnamespace System_\n{\n	namespace Console_\n	{\n		void Console_::Write_(string value)\n		{\n			std::printf(\"%.*s\", value.Length_, value.Buffer);\n		}\n\n		void Console_::WriteLine_(string value)\n		{\n			std::printf(\"%.*s\\n\", value.Length_, value.Buffer);\n		}\n\n		void Console_::WriteLine_()\n		{\n			std::printf(\"\\n\");\n		}\n\n		Arguments_::Arguments_(int argc, char const *const * argv)\n			: Count_(argc-1)\n		{\n			args = new string[Count_];\n			for (int i = 0; i < Count_; i++)\n				args[i] = string(argv[i+1]);\n		}\n	}\n\n	namespace IO_\n	{\n		File_Reader_::File_Reader_(const string& fileName)\n		{\n			std::FILE* foo;\n			auto fname = fileName.cstr();\n			file = std::fopen(fname, \"rb\");\n			delete[] fname;\n		}\n\n		string File_Reader_::ReadToEndSync_()\n		{\n			std::fseek(file, 0, SEEK_END);\n			auto length = std::ftell(file);\n			std::fseek(file, 0, SEEK_SET);\n			auto buffer = new char[length];\n			length = std::fread(buffer, sizeof(char), length, file);\n			return string(length, buffer);\n		}\n\n		void File_Reader_::Close_()\n		{\n			std::fclose(file);\n		}\n\n		File_Writer_::File_Writer_(const string& fileName)\n		{\n			auto fname = fileName.cstr();\n			file = std::fopen(fname, \"wb\"); // TODO check error\n			delete[] fname;\n		}\n\n		void File_Writer_::Write_(const string& value)\n		{\n			std::fwrite(value.Buffer, sizeof(char), value.Length_, file);\n		}\n\n		void File_Writer_::Close_()\n		{\n			std::fclose(file);\n		}\n	}\n\n	namespace Text_\n	{\n		String_Builder_::String_Builder_(string const & value)\n			: buffer(value)\n		{\n		}\n\n		String_Builder_::String_Builder_()\n			: buffer(\"\")\n		{\n		}\n\n		void String_Builder_::Append_(string const & value)\n		{\n			buffer = buffer + value;\n		}\n\n		void String_Builder_::Append_(String_Builder_ const * value)\n		{\n			buffer = buffer + value->buffer;\n		}\n\n		void String_Builder_::AppendLine_(string const & value)\n		{\n			buffer = buffer + value + string(\"\\n\");\n		}\n\n		void String_Builder_::AppendLine_()\n		{\n			buffer = buffer + string(\"\\n\");\n		}\n	}\n}\n"));
+	resource_manager_->AddResource(::string("RuntimeLibrary.h"), ::string("// On windows this disables warnings about using fopen_s instead of fopen\n// It must be defined before including the headers.  The includes have been moved\n// here to avoid leaking this into the program being compiled.  This required the\n// use of void* instead of FILE* in some places.\n#define _CRT_SECURE_NO_WARNINGS\n#include <cstring>\n#include <cstdio>\n\nstruct string\n{\npublic:\n	int Length_;\n	char const * Buffer;\n\n	string();\n	string(char c, int repeat);\n	string(char const * s);\n	string(int length, char const * s);\n	char const * cstr() const;\n	string Substring_(int start, int length) const;\n	string Substring_(int start) const { return Substring_(start, Length_-start); }\n	string Replace_(string oldValue, string newValue) const;\n	int LastIndexOf_(char c) const;\n	char operator[] (int const index) const;\n	string operator+(string const & value) const;\n	string operator+(char const & value) const;\n	string const * operator->() const { return this; }\n	string const & operator* () const { return *this; }\n	bool operator==(string const & other) const;\n	bool operator!=(string const & other) const { return !(*this == other); }\n	friend bool operator<(string const & lhs, string const & rhs);\n\n	typedef char const * const_iterator;\n	const_iterator begin() const { return &Buffer[0]; }\n	const_iterator end() const { return &Buffer[Length_]; }\n};\n\nclass ResourceManager\n{\npublic:\n	string const & GetString_(string resourceName);\n	void AddResource(string name, string value);\n};\n\nextern ResourceManager *const resource_manager_;\n\nclass NoneType\n{\npublic:\n	template<class T>\n	operator T*() const { return static_cast<T*>(0); }\n};\nstatic const NoneType None = NoneType();\n\ntemplate<typename T>\nstruct Maybe\n{\nprivate:\n	T data;\n	bool hasValue;\n\npublic:\n	Maybe(T const & value) : data(value), hasValue(true) {}\n	Maybe(::NoneType const & none) : hasValue(false) {}\n	T& operator->() { return data; }\n	T const & operator->() const\n	{\n		if(!hasValue) throw \"Access to null Maybe value\";\n		return data;\n	}\n	T  & operator* ()\n	{\n		if(!hasValue) throw \"Access to null Maybe value\";\n		return data;\n	}\n	T const & operator* () const\n	{\n		if(!hasValue) throw \"Access to null Maybe value\";\n		return data;\n	}\n	bool operator==(T const & other) const\n	{\n		return hasValue && data == other;\n	}\n	bool operator!=(T const & other) const\n	{\n		return hasValue && data != other;\n	}\n};\n\nnamespace System_\n{\n	namespace Collections_\n	{\n		template<typename T>\n		class List_\n		{\n		private:\n			T* values;\n			int length;\n			int capacity;\n\n		public:\n			typedef T const * const_iterator;\n\n			List_() : values(0), length(0), capacity(0) { }\n			void Add_(T value);\n			int Length_() const { return length; }\n			const_iterator begin() const { return values; }\n			const_iterator end() const { return &values[length]; }\n			T const & Get_(int const index) const { return values[index]; }\n		};\n\n		template<typename T>\n		void List_<T>::Add_(T value)\n		{\n			if(length >= capacity)\n			{\n				int newCapacity = capacity == 0 ? 16 : capacity * 2;\n				T* newValues = new T[newCapacity];\n				std::memcpy(newValues, values, length * sizeof(T));\n				values = newValues;\n				capacity = newCapacity;\n			}\n			values[length] = value;\n			length++;\n		}\n	}\n\n	namespace Console_\n	{\n		class Console_\n		{\n		public:\n			void Write_(string value);\n			void WriteLine_(string value);\n			void WriteLine_();\n		};\n\n		class Arguments_\n		{\n		private:\n			string* args;\n		public:\n			typedef string const * const_iterator;\n			const int Count_;\n\n			Arguments_(int argc, char const *const * argv);\n			const_iterator begin() const { return &args[0]; }\n			const_iterator end() const { return &args[Count_]; }\n			string const & Get_(int const index) const { return args[index]; }\n		};\n	}\n\n	namespace IO_\n	{\n		class File_Reader_\n		{\n		private:\n			std::FILE* file;\n\n		public:\n			File_Reader_(const string& fileName);\n			string ReadToEndSync_();\n			void Close_();\n		};\n\n		class File_Writer_\n		{\n		private:\n			std::FILE* file;\n\n		public:\n			File_Writer_(const string& fileName);\n			void Write_(const string& value);\n			void Close_();\n		};\n	}\n\n	namespace Text_\n	{\n		class String_Builder_\n		{\n		private:\n			string buffer;\n		public:\n			String_Builder_();\n			String_Builder_(string const & value);\n			void Append_(string const & value);\n			void Append_(String_Builder_ const * value);\n			void AppendLine_(string const& value);\n			void AppendLine_();\n			string ToString_() const { return buffer; }\n		};\n	}\n}\n"));
 
 	Main_(new ::System_::Console_::Console_(), new ::System_::Console_::Arguments_(argc, argv));
 	return 0;

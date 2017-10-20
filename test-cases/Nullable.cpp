@@ -13,7 +13,7 @@ auto Main_(::System_::Console_::Console_ *const console_) -> void;
 auto Func_(::Maybe<string> const x_, ::Maybe<unsigned int> const y_) -> ::Maybe<int>
 {
 	::Maybe<int> const z_ = ::None;
-	::System_::Text_::StringBuilder_ const *const s_ = ::None;
+	::System_::Text_::String_Builder_ const *const s_ = ::None;
 	return ::None;
 }
 

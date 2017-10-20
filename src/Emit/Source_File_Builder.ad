@@ -1,14 +1,14 @@
 public class Source_File_Builder
 {
-    private let code: mut System.Text.StringBuilder;
-    private let indent: mut System.Text.StringBuilder; // TODO expose length as IndentDepth
+    private let code: mut System.Text.String_Builder;
+    private let indent: mut System.Text.String_Builder; // TODO expose length as IndentDepth
     private var firstElement: bool; // TODO expose public getter
     private var afterBlock: bool; // TODO expose public getter
 
     public new()
     {
-        code = new System.Text.StringBuilder();
-        indent = new System.Text.StringBuilder();
+        code = new System.Text.String_Builder();
+        indent = new System.Text.String_Builder();
         firstElement = true;
         afterBlock = true;
     }
@@ -19,7 +19,7 @@ public class Source_File_Builder
 
     public BeginLine(mut self, value: string) -> void
     {
-        code.Append(indent.ToString()); // TODO remove ToString() when RuntimeLibrary supports Append(StringBuilder)
+        code.Append(indent.ToString()); // TODO remove ToString() when RuntimeLibrary supports Append(String_Builder)
         code.Append(value);
         firstElement = afterBlock = false;
     }
@@ -39,7 +39,7 @@ public class Source_File_Builder
 
     public WriteLine(mut self, value: string) -> void
     {
-        code.Append(indent.ToString()); // TODO remove ToString() when RuntimeLibrary supports Append(StringBuilder)
+        code.Append(indent.ToString()); // TODO remove ToString() when RuntimeLibrary supports Append(String_Builder)
         code.Append(value);
         code.AppendLine();
         firstElement = afterBlock = false;
@@ -84,7 +84,7 @@ public class Source_File_Builder
     // @ensures IndentDepth == old(IndentDepth)-1
     public EndBlock(mut self) -> void
     {
-        indent = new System.Text.StringBuilder(indent.ToString().Substring(1)); // TODO support shortening StringBuilder
+        indent = new System.Text.String_Builder(indent.ToString().Substring(1)); // TODO support shortening String_Builder
         WriteLine("}");
         afterBlock = true;
     }
@@ -93,7 +93,7 @@ public class Source_File_Builder
     // @ensures IndentDepth == old(IndentDepth)-1
     public EndBlockWithSemicolon(mut self) -> void
     {
-        indent = new System.Text.StringBuilder(indent.ToString().Substring(1)); // TODO support shortening StringBuilder
+        indent = new System.Text.String_Builder(indent.ToString().Substring(1)); // TODO support shortening String_Builder
         WriteLine("};");
     }
 
