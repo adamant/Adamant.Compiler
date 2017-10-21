@@ -84,7 +84,7 @@ public class Source_File_Builder
     // @ensures IndentDepth == old(IndentDepth)-1
     public EndBlock(mut self) -> void
     {
-        indent.Delete(0, 1);
+        indent.Remove(0, 1);
         WriteLine("}");
         afterBlock = true;
     }
@@ -93,7 +93,7 @@ public class Source_File_Builder
     // @ensures IndentDepth == old(IndentDepth)-1
     public EndBlockWithSemicolon(mut self) -> void
     {
-        indent.Delete(0, 1);
+        indent.Remove(0, 1);
         WriteLine("};");
     }
 

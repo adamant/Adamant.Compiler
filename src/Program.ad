@@ -563,10 +563,9 @@ public ParseArgumentsDeclaration(isMainFunction: bool, isMethod: bool) -> string
 		arguments.Append(ConvertType(mutableBinding, mutableValue, type) + " " + name + "_, ");
 	} while Accept(",");
 	Expect(")");
-	let result: string = arguments.ToString();
-	// TODO implement shortening of String_Builder
-	// Max says: String_Builder has shortening (via `Delete`), but `result` is a string, not a String_Builder...
-	return result.Substring(0, result.Length - 2); // remove the trailing comma and space
+	// TODO Should String_Builder have a Length property? It seems like String_Builder ought to be a subclass of string.
+	arguments.Remove(arguments.ToString().Length - 2); // remove the trailing comma and space
+	return arguments.ToString();
 }
 
 public ParseConstructorArgumentsDeclaration() -> string
