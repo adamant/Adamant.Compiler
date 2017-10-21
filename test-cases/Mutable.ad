@@ -1,11 +1,11 @@
-public Func(var x: int, y: int) -> mut System.Text.StringBuilder
+public Func(var x: int, y: int) -> mut System.Text.String_Builder
 {
 	x += 1;
 	let i: int = x + 2;
 	var j: int = y - 23;
 	j = i;
-	let stringA: mut System.Text.StringBuilder = new System.Text.StringBuilder("Hello");
-	var stringB: System.Text.StringBuilder;
+	let stringA: mut System.Text.String_Builder = new System.Text.String_Builder("Hello");
+	var stringB: System.Text.String_Builder;
 	stringB = stringA;
 	return stringA;
 }

@@ -1,7 +1,7 @@
 public Func(x: string?, y: uint?) -> int?
 {
 	let z: int? = null;
-	let s: System.Text.StringBuilder? = null;
+	let s: System.Text.String_Builder? = null;
 	return null;
 }
 

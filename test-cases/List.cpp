@@ -26,15 +26,15 @@ auto Main_(::System_::Console_::Console_ *const console_) -> void
 	}
 
 	console_->WriteLine_();
-	::System_::Collections_::List_<::System_::Text_::StringBuilder_ *> *const builders_ = new ::System_::Collections_::List_<::System_::Text_::StringBuilder_ *>();
-	builders_->Add_(new ::System_::Text_::StringBuilder_(string("sb[0]: ")));
-	builders_->Add_(new ::System_::Text_::StringBuilder_(string("sb[1]: ")));
-	for (::System_::Text_::StringBuilder_ *const sb_ : *(builders_))
+	::System_::Collections_::List_<::System_::Text_::String_Builder_ *> *const builders_ = new ::System_::Collections_::List_<::System_::Text_::String_Builder_ *>();
+	builders_->Add_(new ::System_::Text_::String_Builder_(string("sb[0]: ")));
+	builders_->Add_(new ::System_::Text_::String_Builder_(string("sb[1]: ")));
+	for (::System_::Text_::String_Builder_ *const sb_ : *(builders_))
 	{
 		sb_->Append_(string("value"));
 	}
 
-	for (::System_::Text_::StringBuilder_ const *const sb_ : *(builders_))
+	for (::System_::Text_::String_Builder_ const *const sb_ : *(builders_))
 	{
 		console_->WriteLine_(sb_->ToString_());
 	}

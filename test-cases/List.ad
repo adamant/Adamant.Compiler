@@ -16,14 +16,14 @@ public Main(console: mut System.Console.Console) -> void
 	}
 	console.WriteLine();
 
-	let builders: mut System.Collections.List<mut System.Text.StringBuilder> = new System.Collections.List<mut System.Text.StringBuilder>();
-	builders.Add(new System.Text.StringBuilder("sb[0]: "));
-	builders.Add(new System.Text.StringBuilder("sb[1]: "));
-	for let sb: mut System.Text.StringBuilder in builders
+	let builders: mut System.Collections.List<mut System.Text.String_Builder> = new System.Collections.List<mut System.Text.String_Builder>();
+	builders.Add(new System.Text.String_Builder("sb[0]: "));
+	builders.Add(new System.Text.String_Builder("sb[1]: "));
+	for let sb: mut System.Text.String_Builder in builders
 	{
 		sb.Append("value");
 	}
-	for let sb: System.Text.StringBuilder in builders
+	for let sb: System.Text.String_Builder in builders
 	{
 		console.WriteLine(sb.ToString());
 	}

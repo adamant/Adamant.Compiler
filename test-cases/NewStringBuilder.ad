@@ -1,4 +1,4 @@
 public Main() -> void
 {
-	new System.Text.StringBuilder();
+	new System.Text.String_Builder();
 }

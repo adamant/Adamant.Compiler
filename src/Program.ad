@@ -166,7 +166,7 @@ public ConvertType(mutableBinding: bool, mutableValue: bool, var type: string) -
 public ParseType() -> string
 {
 	// TODO should be `new mut`
-	let type: mut System.Text.StringBuilder = new System.Text.StringBuilder(ExpectIdentifier());
+	let type: mut System.Text.String_Builder = new System.Text.String_Builder(ExpectIdentifier());
 	while Accept(".")
 	{
 		type.Append(".");
@@ -545,7 +545,7 @@ public ParseArgumentsDeclaration(isMainFunction: bool, isMethod: bool) -> string
 	if Accept(")") { return ""; }
 
 	// TODO should be `new mut`
-	let arguments: mut System.Text.StringBuilder = new System.Text.StringBuilder();
+	let arguments: mut System.Text.String_Builder = new System.Text.String_Builder();
 	do
 	{
 		let mutableBinding: bool = Accept("var");
@@ -563,9 +563,9 @@ public ParseArgumentsDeclaration(isMainFunction: bool, isMethod: bool) -> string
 		arguments.Append(ConvertType(mutableBinding, mutableValue, type) + " " + name + "_, ");
 	} while Accept(",");
 	Expect(")");
-	let result: string = arguments.ToString();
-	// TODO implement shortening of StringBuilder
-	return result.Substring(0, result.Length - 2); // remove the trailing comma and space
+	// TODO Should String_Builder have a Length property? It seems like String_Builder ought to be a subclass of string.
+	arguments.Remove(arguments.ToString().Length - 2); // remove the trailing comma and space
+	return arguments.ToString();
 }
 
 public ParseConstructorArgumentsDeclaration() -> string
@@ -801,7 +801,7 @@ public EmitEntryPointAdapter(resources: System.Collections.List<Source_Text>) ->
 	}
 
 	// TODO should be `new mut`
-	let args: mut System.Text.StringBuilder = new System.Text.StringBuilder();
+	let args: mut System.Text.String_Builder = new System.Text.String_Builder();
 	if MainFunctionAcceptsConsole
 		{ args.Append("new ::System_::Console_::Console_()"); }
 	if MainFunctionAcceptsArgs
@@ -911,7 +911,7 @@ public Main(console: mut System.Console.Console, args: System.Console.Arguments)
 	console.Write("Output: ");
 	console.WriteLine(outputFilePath);
 	// TODO should be `new mut`
-	let outputFile: mut System.IO.FileWriter = new System.IO.FileWriter(outputFilePath);
+	let outputFile: mut System.IO.File_Writer = new System.IO.File_Writer(outputFilePath);
 	outputFile.Write(translated);
 	outputFile.Close();
 
@@ -925,10 +925,10 @@ public Main(console: mut System.Console.Console, args: System.Console.Arguments)
 	if index <> -1
 		{ outputDirPath = outputDirPath.Substring(0, index+1); }
 	console.WriteLine(outputDirPath);
-	var resourceFile: mut System.IO.FileWriter = new System.IO.FileWriter(outputDirPath+"RuntimeLibrary.h");
+	var resourceFile: mut System.IO.File_Writer = new System.IO.File_Writer(outputDirPath+"RuntimeLibrary.h");
 	resourceFile.Write(resource_manager.GetString("RuntimeLibrary.h"));
 	resourceFile.Close();
-	resourceFile = new System.IO.FileWriter(outputDirPath+"RuntimeLibrary.cpp");
+	resourceFile = new System.IO.File_Writer(outputDirPath+"RuntimeLibrary.cpp");
 	resourceFile.Write(resource_manager.GetString("RuntimeLibrary.cpp"));
 	resourceFile.Close();
 }
@@ -936,7 +936,7 @@ public Main(console: mut System.Console.Console, args: System.Console.Arguments)
 public ReadSource(path: string) -> Source_Text
 {
 	// TODO should be `mut new` or `new mut`, whichever is decided to be the correct syntax
-	let file: mut System.IO.FileReader = new System.IO.FileReader(path);
+	let file: mut System.IO.File_Reader = new System.IO.File_Reader(path);
 	let contents: string = file.ReadToEndSync();
 	file.Close(); // TODO this should automatically be handled
 	var name: string = path;

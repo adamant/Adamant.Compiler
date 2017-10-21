@@ -3,21 +3,21 @@
 // Type Declarations
 
 // Function Declarations
-auto Func_(int x_, int const y_) -> ::System_::Text_::StringBuilder_ *;
+auto Func_(int x_, int const y_) -> ::System_::Text_::String_Builder_ *;
 auto Main_(::System_::Console_::Console_ *const console_) -> void;
 
 // Class Declarations
 
 // Definitions
 
-auto Func_(int x_, int const y_) -> ::System_::Text_::StringBuilder_ *
+auto Func_(int x_, int const y_) -> ::System_::Text_::String_Builder_ *
 {
 	x_ += 1;
 	int const i_ = x_ + 2;
 	int j_ = y_ - 23;
 	j_ = i_;
-	::System_::Text_::StringBuilder_ *const stringA_ = new ::System_::Text_::StringBuilder_(string("Hello"));
-	::System_::Text_::StringBuilder_ const * stringB_;
+	::System_::Text_::String_Builder_ *const stringA_ = new ::System_::Text_::String_Builder_(string("Hello"));
+	::System_::Text_::String_Builder_ const * stringB_;
 	stringB_ = stringA_;
 	return stringA_;
 }
