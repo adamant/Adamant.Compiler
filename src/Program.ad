@@ -1,3 +1,7 @@
+public TestPullRequestMethod() -> void
+{
+}
+
 public Compile(sources: System.Collections.List<Source_Text>, resources: System.Collections.List<Source_Text>) -> string
 {
 	var package: Syntax_Node = ParsePackage(sources);
