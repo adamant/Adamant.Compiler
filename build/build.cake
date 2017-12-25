@@ -310,7 +310,11 @@ void CompileCpp(string source, FilePath output, FilePath includeDirectory = null
 		options += " -Xclang -flto-visibility-public-std";
 	}
 
-	RunProcess("clang++", source + " -o " + output + options);
+	// Hack to try to get absolute paths for Linux
+	var wd = MakeAbsolute(Directory("."));
+	var sourcePaths = string.Join(" ", source.Split(' ').Select(s => wd + "/" + s));
+
+	RunProcess("clang++", sourcePaths + " -o " + output + options);
 }
 
 void Test(string version)
