@@ -152,7 +152,7 @@ Task("Build-Expected")
 			var outputDir = Directory("target") + relativePath.GetDirectory();
 			EnsureDirectoryExists(outputDir);
 			var output = outputDir + relativePath.GetFilenameWithoutExtension();
-			CompileCpp(relativePath + " src/*.cpp", output, "src");
+			CompileCpp(new []{ relativePath.ToString(), "src/*.cpp" }, output, "src");
 		}
 		Information("Compiled {0} Test Case Expected Outputs", testCases.Count);
 	});
@@ -297,7 +297,12 @@ void CompileAdamant(FilePath compiler, IEnumerable<FilePath> sources, FilePath o
 	}
 }
 
-void CompileCpp(string source, FilePath output, FilePath includeDirectory = null)
+void CompileCpp(string sourceGlob, FilePath output, FilePath includeDirectory = null)
+{
+	CompileCpp(new [] { sourceGlob }, output, includeDirectory);
+}
+
+void CompileCpp(string[] sourceGlobs, FilePath output, FilePath includeDirectory = null)
 {
 	var options =  " -std=c++14";
 	if(includeDirectory != null)
@@ -310,11 +315,12 @@ void CompileCpp(string source, FilePath output, FilePath includeDirectory = null
 		options += " -Xclang -flto-visibility-public-std";
 	}
 
-	// Hack to try to get absolute paths for Linux
+	// Becuase wildcard expansion is handled by the shell on Linux and Cake StartProcess() always
+	// sets UseShellExecute=false, we just expand the wildcards ourselves
 	var wd = MakeAbsolute(Directory("."));
-	var sourcePaths = string.Join(" ", source.Split(' ').Select(s => wd + "/" + s));
+	var sources = string.Join(" ", sourceGlobs.SelectMany(glob => GetFiles(glob)).Select(file => wd.GetRelativePath(file)));
 
-	RunProcess("clang++", sourcePaths + " -o " + output + options);
+	RunProcess("clang++", sources + " -o " + output + options);
 }
 
 void Test(string version)
@@ -370,11 +376,7 @@ void Test(string version)
 int RunProcess(FilePath command, string args, bool checkResult = true)
 {
 	Verbose(command + " " + args);
-	var result = StartProcess(command, new ProcessSettings()
-		{
-			Arguments = args,
-			WorkingDirectory = ".", // Needed for Linux, force the working directory to what we think it should be
-		});
+	var result = StartProcess(command, args);
 	if(checkResult && result != 0)
 		throw new Exception("Exited with result: "+result);
 
@@ -389,7 +391,6 @@ IEnumerable<string> ReadProcess(FilePath command, string args)
 		{
 			Arguments = args,
 			RedirectStandardOutput = true,
-			WorkingDirectory = ".", // Needed for Linux, force the working directory to what we think it should be
 		});
 	process.WaitForExit();
 	var result = process.GetExitCode();
