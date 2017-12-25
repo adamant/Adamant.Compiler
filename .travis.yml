@@ -3,4 +3,4 @@ sudo: false
 language: csharp # so we get mono for the cake build
 git:
   depth: false # deep clone so we get all branches and tags
-script: ./build.sh -Target=All
+script: ./build.sh -Target=All -Verbosity=Verbose

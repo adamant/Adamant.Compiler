@@ -169,7 +169,7 @@ Task("Run-Expected")
 		{
 			var program = wd.GetRelativePath(testCase);
 			Information("Running {0}", program);
-			var result = StartProcess(program, "");
+			var result = RunProcess(program, "", false);
 			Information("Exit Code is {0}", result);
 			// TODO if we had a way to know what the expected exit code was, we could check
 			// TODO we could also check the actual output
@@ -363,12 +363,18 @@ void Test(string version)
 }
 
 // Run a process and report an error on failure
-void RunProcess(FilePath command, string args)
+int RunProcess(FilePath command, string args, bool checkResult = true)
 {
 	Verbose(command + " " + args);
-	var result = StartProcess(command, args);
-	if(result != 0)
+	var result = StartProcess(command, new ProcessSettings()
+		{
+			Arguments = args,
+			WorkingDirectory = ".", // Needed for Linux, force the working directory to what we think it should be
+		});
+	if(checkResult && result != 0)
 		throw new Exception("Exited with result: "+result);
+
+	return result;
 }
 
 // Run a process, return the ouput and report an error on failure
@@ -379,6 +385,7 @@ IEnumerable<string> ReadProcess(FilePath command, string args)
 		{
 			Arguments = args,
 			RedirectStandardOutput = true,
+			WorkingDirectory = ".", // Needed for Linux, force the working directory to what we think it should be
 		});
 	process.WaitForExit();
 	var result = process.GetExitCode();
