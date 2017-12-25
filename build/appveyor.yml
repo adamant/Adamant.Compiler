@@ -5,6 +5,7 @@ branches:
   except:
   - translated
 skip_tags: true
+max_jobs: 1
 image: Visual Studio 2017
 environment:
   access_token:
@@ -17,4 +18,5 @@ before_build:
     git config --global user.name "AppVeyor Build"
 build_script:
 - ps: .\build.ps1 -Target CI
+test: off
 deploy: off

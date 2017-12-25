@@ -199,6 +199,11 @@ Task("Commit-Translated")
 	.IsDependentOn("Build-Current")
 	.Does(() =>
 	{
+		if(AppVeyor.IsRunningOnAppVeyor && AppVeyor.Environment.PullRequest.IsPullRequest)
+		{
+			Warning("Not committing translated code becuase this is a pull request build.");
+			return;
+		}
 		var deleteSettings = new DeleteDirectorySettings()
 			{
 				Recursive = true,

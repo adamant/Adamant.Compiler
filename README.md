@@ -14,7 +14,7 @@ The list of the currently [implemented language features](docs/ImplementedLangua
 
 Fork the project and then clone the repository.  Submit changes as a pull request.  Language features should have a test in the test suite for them.
 
-The compiler translates into code that is compiled using the [clang++ compiler](https://clang.llvm.org) version 5.0.  Older versions of the compiler may work, but this is not being tested and may change.  It should build on both Windows and Linux, but the Linux builds are not tested very often.
+The compiler translates into code that is compiled using the [clang++ compiler](https://clang.llvm.org) version 5.0.  Older versions of the C++ compiler may work, but this is not being tested and may change.  It builds on both Windows and Linux with CI builds on every commit in the repo.
 
 Please read all of this section, particularly about the development cycle before attempting to contribute.
 
@@ -36,19 +36,44 @@ Because the Adamant compiler is being bootstrapped, there are multiple versions 
 
 ### Build and Test Scripts
 
-The following scripts are available at the in the appropriate `build/<os>` directory:
+The build uses the [Cake build tool](https://cakebuild.net/) and runs cross platform.  To run the build on Linux or MacOS you will need [Mono](http://www.mono-project.com/) installed.  To build, simply run the Cake build tool either with the default target or the partigular target you want to build.
 
-  * **buildCurrent**: puts the C++ code of the previous version into `translated\previous` then uses that executable to compile the compiler source in `src` to C++ in the `translated\current` directory and compiles it to an executable.
-  * **buildBootstrapped**: first runs `buildCurrent`, then uses the executable of the current version produced by `buildCurrent` to compile the source in `src` to C++ in the `translated\bootstrapped` directory and compile it to an executable.
-  * **buildDoubleBootstrapped**: first runs `buildBootstrapped`, then uses the executable of the bootstrapped version produced by `buildBootstrapped` to compile the source in `src` to C++ in the `translated\double-bootstrapped` directory and compile it to an executable.  Checks that the translated code of bootstrapped and double bootstrapped are identical.
-  * **buildTestCases**: compiles the C++ code representing the expected result of the test cases to ensure it is valid C++.
-  * **runTestCases**: first runs `buildTestCases`, then executes all the test case executables with no arguments and reports the return code.  *Note that many test cases intentionally return non-zero return codes*.
-  * **testCurrent**: first runs `buildCurrent`, then uses the current version executable to compile all the test cases to C++ in the `translated\test-cases` directory.
-  * **testBootstrapped**: first runs `buildBootstrapped`, then uses the bootstrapped version executable to compile all the test cases to C++ in the `translated\test-cases` directory.
+#### Building on Windows
+
+From a Powershell command prompt at the root of the repo run:
+
+	.\build.ps1
+
+or:
+
+	.\bulld.ps1 -Target <Target>
+
+#### Building on Linux and MacOS
+
+From the command prompt at the root of the repo run:
+
+	./build.sh
+
+or:
+
+	./build.sh -Target=All
+
+#### Build Targets
+
+You can read the `build\build.cake` file to see the full list of targets.  The targets that will normally be used are:
+
+  * **Default**: The default target, builds and tests both current and bootstrapped versions.
+  * **Build-Current**: Just builds the current version.
+  * **Test-Current**: Builds and tests the current version.
+  * **Build-Bootstrapped**: Builds current and bootstrapped.
+  * **Test-Bootstrapped**: Builds current and bootstrapped, then tests bootstrapped.
+  * **Build-Expected**: Builds the expected C++ results of the test cases.  That is the `*.cpp` files in the `test-cases` directory.
+  * **Run-Expected**: Builds and runs the expected C++ results of the test cases.  That is the `*.cpp` files in the `test-cases` directory.
+  * **All**: This is what the CI build will check. Builds and tests all versions of the compiler. Also, builds and runs the expected results of the test cases.
 
 ###  Development Cycle
 
-Since the compiler is being bootstrapped, the versions of the compiler discussed above must be managed.  Additionally, to avoid issues with trying distributing binaries of the compiler for each commit, the C++ for each version is committed on a separate branch in the repository.  This enables someone to clone the repository, compile the C++ code and begin development.  When you commit, you will need to push that commit up to github so that the CI server can build it and check in the matching C++ code before you will be able to build again.  Additionally, you will need to fetch tags by running `git fetch --tags` to get the built C++ code.
+Since the compiler is being bootstrapped, the versions of the compiler discussed above must be managed.  Additionally, to avoid issues with trying to distributing binaries of the compiler for each commit, the C++ for each version is committed on a separate branch in the repository.  This enables someone to clone the repository, compile the C++ code and begin development.  When you build, you will be using the last version of the compiler that was published to the main repo.  Commits must be pushed to the main repo before the CI build can pick them up and check in the matching C++ source. That source is on a separate branch accessible only by tags.  As such, you will need to fetch tags by running `git fetch --tags` to get the built C++ code.
 
 Several directories are intentionally not committed and are in the `.gitignore` file.  These are:
 
